@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify
-from sqlalchemy import select
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify, current_app
+from sqlalchemy import select, delete
 from .db import get_db, engine
 from .models import Base, Todo
 
@@ -71,3 +71,13 @@ def api_create():
     db.add(todo)
     db.commit()
     return {"id": todo.id, "title": todo.title, "done": todo.done}, 201
+
+
+@bp.post("/api/_reset")
+def api_reset():
+    if not current_app.config.get("TEST_RESET"):
+        return {"error": "forbidden"}, 403
+    db = get_db()
+    db.execute(delete(Todo))
+    db.commit()
+    return {"ok": True}
