@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flask Todo</title>
+<style>
+body { font-family: system-ui, Arial, sans-serif; max-width: 720px; margin: 2rem auto; }
+form { display: flex; gap: .5rem; }
+input[type=text] { flex: 1; padding: .5rem; }
+ul { list-style: none; padding: 0; }
+li { display: flex; justify-content: space-between; padding: .25rem 0; }
+.done { text-decoration: line-through; opacity: .7; }
+button { cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>Todo</h1>
+
+
+<form action="/add" method="post">
+<input type="text" name="title" placeholder="Add a task" required />
+<button type="submit">Add</button>
+</form>
+
+
+<ul>
+{% for t in todos %}
+<li>
+<span class="{% if t.done %}done{% endif %}">{{ t.title }}</span>
+<form action="/toggle/{{ t.id }}" method="post">
+<button type="submit">{% if t.done %}Undo{% else %}Done{% endif %}</button>
+</form>
+</li>
+{% else %}
+<li>No tasks yet.</li>
+{% endfor %}
+</ul>
+</body>
+</html>
