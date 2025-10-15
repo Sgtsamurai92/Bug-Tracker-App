@@ -34,10 +34,14 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Playwright
-        run: |
-          npm install
-          npx playwright install --with-deps
+      - name: Install Node dependencies (skip scripts)
+        run: npm install --ignore-scripts
+
+      - name: Install Playwright browsers and deps
+        run: npx playwright install --with-deps
+
+      - name: Show Playwright version
+        run: npx playwright --version
 
       - name: Start Flask app and run E2E tests
         env:
