@@ -39,7 +39,7 @@ jobs:
       # ---- Run Playwright (will auto-start Flask via webServer in config) ----
       - name: E2E tests
         env:
-          FLASK_APP: app
+          FLASK_APP: app:create_app
           FLASK_ENV: development
           TEST_RESET: "1"
           TODO_DB: "todo-e2e.sqlite3"
