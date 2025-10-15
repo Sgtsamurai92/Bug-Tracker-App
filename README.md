@@ -1,6 +1,10 @@
 # Flask Todo App
 
 Minimal Flask + SQLAlchemy Todo app with unit/API/E2E tests and CI. Uses an app factory, SQLite, and Playwright for browser tests.
+# Flask Todo App
+
+[![CI](https://github.com/sgtsamurai92/Bug-Tracker-App/actions/workflows/ci.yml/badge.svg)](https://github.com/sgtsamurai92/Bug-Tracker-App/actions)
+
 
 ## Features
 - Add/toggle todos; server-rendered UI (Jinja2)
