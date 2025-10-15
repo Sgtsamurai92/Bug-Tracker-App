@@ -34,20 +34,17 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Node dependencies (skip scripts)
+      - name: Install Node dependencies
         run: npm install --ignore-scripts
 
-      - name: Add Playwright CLI
-        run: npm install --no-save playwright
-
-      - name: Install Playwright browsers and deps
-        run: npx playwright install --with-deps
+      - name: Install Playwright (action)
+        uses: microsoft/playwright-github-action@v1
 
       - name: Start Flask app and run E2E tests
         env:
           FLASK_APP: app:create_app
         run: |
           python -m flask run --port 5000 &
-          # simple wait to ensure server is listening
-          for i in {1..20}; do nc -z 127.0.0.1 5000 && break; sleep 1; done
+          # wait for server to accept connections
+          for i in {1..20}; do (echo > /dev/tcp/127.0.0.1/5000) >/dev/null 2>&1 && break; sleep 1; done
           npx playwright test
