@@ -1,0 +1,36 @@
+repos:
+  # ---- Python formatting ----
+  - repo: https://github.com/psf/black
+    rev: 25.9.0
+    hooks:
+      - id: black
+        language_version: python3
+        types: [python]
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 7.0.0
+    hooks:
+      - id: isort
+        types: [python]
+
+  # ---- Python lint ----
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.3.0
+    hooks:
+      - id: flake8
+        additional_dependencies: [flake8-bugbear]
+        args: [--max-line-length=100]   # allow slightly longer lines
+        types: [python]
+
+  # ---- Generic hygiene (exclude vendor/generated) ----
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '^(node_modules/|playwright-report/|test-results/|\.venv/)'
+      - id: end-of-file-fixer
+        exclude: '^(node_modules/|playwright-report/|test-results/|\.venv/)'
+      - id: check-merge-conflict
+      - id: check-yaml
+        files: \.(yml|yaml)$
+      - id: check-added-large-files

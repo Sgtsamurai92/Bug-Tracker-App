@@ -1,8 +1,17 @@
 from __future__ import annotations
 
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify, current_app
-from sqlalchemy import select, delete
-from .db import get_db, engine
+from flask import (
+    Blueprint,
+    current_app,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from sqlalchemy import delete, select
+
+from .db import engine, get_db
 from .models import Base, Todo
 
 bp = Blueprint("routes", __name__)
@@ -15,15 +24,11 @@ def ensure_tables() -> None:
         Base.metadata.create_all(bind=engine)
 
 
-
-
 @bp.get("/")
 def index():
     db = get_db()
     todos = db.scalars(select(Todo)).all()
     return render_template("index.html", todos=todos)
-
-
 
 
 @bp.post("/add")
@@ -36,8 +41,6 @@ def add():
     return redirect(url_for("routes.index"))
 
 
-
-
 @bp.post("/toggle/<int:todo_id>")
 def toggle(todo_id: int):
     db = get_db()
@@ -48,16 +51,12 @@ def toggle(todo_id: int):
     return redirect(url_for("routes.index"))
 
 
-
-
 # --- JSON API ---
 @bp.get("/api/todos")
 def api_list():
     db = get_db()
     todos = db.scalars(select(Todo)).all()
     return jsonify([{"id": t.id, "title": t.title, "done": t.done} for t in todos])
-
-
 
 
 @bp.post("/api/todos")

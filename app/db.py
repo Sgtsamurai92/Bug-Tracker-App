@@ -1,9 +1,8 @@
 from __future__ import annotations
-from typing import Optional
 
 from flask import Flask, g
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session, sessionmaker
 
 engine = None  # type: Optional[object]
 SessionLocal = None  # type: Optional[sessionmaker]

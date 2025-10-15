@@ -31,6 +31,3 @@ test('add and toggle a todo', async ({ page }) => {
   const titleSpan = item.locator('[data-testid="todo-title"]');
   await expect(titleSpan).toHaveClass(/(^|\s)done(\s|$)/);
 });
-
-
-

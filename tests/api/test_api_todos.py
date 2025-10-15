@@ -1,13 +1,15 @@
-import httpx
 import threading
-from app import create_app
+
+import httpx
 from werkzeug.serving import make_server
+
+from app import create_app
 
 
 class ServerThread(threading.Thread):
     def __init__(self, app):
         super().__init__(daemon=True)
-        self.srv = make_server('127.0.0.1', 5001, app)
+        self.srv = make_server("127.0.0.1", 5001, app)
 
     def run(self):
         self.srv.serve_forever()
@@ -16,13 +18,10 @@ class ServerThread(threading.Thread):
         self.srv.shutdown()
 
 
-
-
 def test_api_crud(tmp_path):
     app = create_app({"DATABASE": str(tmp_path / "test.sqlite3")})
     server = ServerThread(app)
     server.start()
-
 
     try:
         base = "http://127.0.0.1:5001"
