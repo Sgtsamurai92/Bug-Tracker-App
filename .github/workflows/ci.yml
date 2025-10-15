@@ -23,6 +23,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Make repo importable (set PYTHONPATH)
+        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
+
       - name: Run PyTest (unit and API)
         run: pytest
 
@@ -33,11 +36,12 @@ jobs:
 
       - name: Install Playwright
         run: |
-          npm ci
+          npm install
           npx playwright install --with-deps
 
       - name: Start Flask app and run E2E tests
+        env:
+          FLASK_APP: app:create_app
         run: |
-          export FLASK_APP=app:create_app
           python -m flask run --port 5000 &
           npx playwright test
