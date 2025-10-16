@@ -28,12 +28,40 @@ def test_api_crud(tmp_path):
         # list empty
         r = httpx.get(f"{base}/api/todos")
         assert r.status_code == 200 and r.json() == []
-        # create
-        r = httpx.post(f"{base}/api/todos", json={"title": "Write tests"})
-        assert r.status_code == 201 and r.json()["title"] == "Write tests"
-        # list has one
+        # create several with metadata
+        r = httpx.post(
+            f"{base}/api/todos", json={"title": "Write tests", "priority": "high"}
+        )
+        assert r.status_code == 201 and r.json()["priority"] == "high"
+        r = httpx.post(
+            f"{base}/api/todos",
+            json={"title": "Do chores", "priority": "low", "due_date": "2099-01-01"},
+        )
+        assert r.status_code == 201
+        r = httpx.post(
+            f"{base}/api/todos", json={"title": "Buy milk", "priority": "medium"}
+        )
+        assert r.status_code == 201
+
+        # list has three
         r = httpx.get(f"{base}/api/todos")
         data = r.json()
-        assert len(data) == 1 and data[0]["done"] is False
+        assert len(data) == 3
+
+        # filter by priority
+        r = httpx.get(f"{base}/api/todos", params={"priority": "low"})
+        low_items = r.json()
+        assert all(it["priority"] == "low" for it in low_items)
+
+        # search by q
+        r = httpx.get(f"{base}/api/todos", params={"q": "milk"})
+        milk_items = r.json()
+        assert len(milk_items) == 1 and milk_items[0]["title"].lower().find("milk") >= 0
+
+        # sort by due (soonest first), NULLs last
+        r = httpx.get(f"{base}/api/todos", params={"sort": "due"})
+        by_due = r.json()
+        # first should have a due_date (the one we set), others can be None
+        assert by_due[0]["due_date"] is not None
     finally:
         server.stop()

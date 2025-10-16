@@ -17,18 +17,57 @@
 <body>
 <h1>Todo</h1>
 
-<form action="/add" method="post">
-  <input data-testid="todo-input" type="text" name="title" placeholder="Add a task" required />
+<form action="/add" method="post" style="gap:.5rem; align-items: center;">
+  <input data-testid="todo-input" type="text" name="title" placeholder="Add a task" required minlength="1" maxlength="200" />
+  <select name="priority" aria-label="Priority">
+    <option value="low">Low</option>
+    <option value="medium" selected>Medium</option>
+    <option value="high">High</option>
+  </select>
+  <input type="date" name="due_date" aria-label="Due date" />
   <button data-testid="todo-add" type="submit">Add</button>
+</form>
+
+<!-- Simple filters -->
+<form id="filters" method="get" style="display:flex; gap:.5rem; align-items:center; margin-top:.5rem;">
+  <input type="text" name="q" value="{{ q or '' }}" placeholder="Search" />
+  <select name="status">
+    <option value="all" {% if status=='all' %}selected{% endif %}>All</option>
+    <option value="active" {% if status=='active' %}selected{% endif %}>Active</option>
+    <option value="done" {% if status=='done' %}selected{% endif %}>Done</option>
+  </select>
+  <select name="p">
+    <option value="all" {% if p=='all' %}selected{% endif %}>Any priority</option>
+    <option value="low" {% if p=='low' %}selected{% endif %}>Low</option>
+    <option value="medium" {% if p=='medium' %}selected{% endif %}>Medium</option>
+    <option value="high" {% if p=='high' %}selected{% endif %}>High</option>
+  </select>
+  <select name="sort">
+    <option value="-created" {% if sort=='-created' %}selected{% endif %}>Newest</option>
+    <option value="created" {% if sort=='created' %}selected{% endif %}>Oldest</option>
+    <option value="due" {% if sort=='due' %}selected{% endif %}>Due (soonest)</option>
+    <option value="-due" {% if sort=='-due' %}selected{% endif %}>Due (latest)</option>
+  </select>
+  <button type="submit">Apply</button>
 </form>
 
 <ul data-testid="todo-list">
   {% for t in todos %}
   <li data-testid="todo-item">
     <span data-testid="todo-title" class="{% if t.done %}done{% endif %}">{{ t.title }}</span>
+    <small>
+      <em>{{ t.priority|default('medium')|capitalize }}</em>
+      {% if t.due_date %} • Due {{ t.due_date }}{% endif %}
+    </small>
     <div style="display:flex; gap:.25rem;">
       <form action="/edit/{{ t.id }}" method="post">
         <input name="title" value="{{ t.title }}" minlength="1" maxlength="200" />
+        <select name="priority">
+          <option value="low" {% if t.priority=='low' %}selected{% endif %}>Low</option>
+          <option value="medium" {% if t.priority=='medium' %}selected{% endif %}>Medium</option>
+          <option value="high" {% if t.priority=='high' %}selected{% endif %}>High</option>
+        </select>
+        <input type="date" name="due_date" value="{{ t.due_date }}" />
         <button data-testid="todo-edit" type="submit">Save</button>
       </form>
       <form action="/toggle/{{ t.id }}" method="post">

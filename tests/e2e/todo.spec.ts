@@ -31,7 +31,7 @@ test('add and toggle a todo', async ({ page }) => {
   const titleSpan = item.locator('[data-testid="todo-title"]');
   await expect(titleSpan).toHaveClass(/(^|\s)done(\s|$)/);
 });
-
+ 
 
 test('edit a todo title', async ({ page }) => {
   await page.goto('/');
@@ -107,4 +107,29 @@ test('edit with invalid title (spaces) is rejected', async ({ page }) => {
     has: page.locator('[data-testid="todo-title"]', { hasText: original }),
   });
   await expect(unchanged).toHaveCount(1);
+});
+ 
+test('filters and sorting work independently', async ({ page, request }) => {
+  await page.goto('/');
+
+  // Create a few via API for deterministic setup
+  await request.post('/api/todos', { data: { title: 'Older high', priority: 'high' } });
+  // Wait briefly to ensure created_at order
+  await page.waitForTimeout(50);
+  await request.post('/api/todos', { data: { title: 'Newest low', priority: 'low' } });
+
+  // Apply priority filter = low
+  await page.selectOption('form#filters select[name="p"]', 'low');
+  await page.click('form#filters button[type="submit"]');
+  await expect(page.locator('[data-testid="todo-item"]')).toHaveCount(1);
+  await expect(page.getByText('Newest low')).toBeVisible();
+
+  // Clear priority filter and sort oldest
+  await page.selectOption('form#filters select[name="p"]', 'all');
+  await page.selectOption('form#filters select[name="sort"]', 'created');
+  await page.click('form#filters button[type="submit"]');
+
+  // Oldest should appear before newest - check first item contains 'Older high'
+  const firstItem = page.locator('[data-testid="todo-item"]').first();
+  await expect(firstItem.getByText('Older high')).toBeVisible();
 });

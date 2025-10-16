@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Envs & deps
+.venv/
+node_modules/
+
+# Local data & reports
+*.sqlite3
+playwright-report/
+test-results/
+
+# VCS
+.git/
+.gitignore
