@@ -7,9 +7,15 @@ Minimal Flask + SQLAlchemy Todo app with unit/API/E2E tests and CI. Uses an app 
 
 
 ## Features
-- Add/toggle/edit/delete todos; server-rendered UI (Jinja2)
+- Add, edit, toggle, and delete todos; server-rendered UI (Jinja2)
+- Metadata on todos: priority (low/medium/high), optional due date, created_at (UTC)
+- Filter/search/sort in UI and API:
+  - Search by text (q)
+  - Filter by status (all/active/done)
+  - Filter by priority (all/low/medium/high)
+  - Sort by newest/oldest and due soon/latest
 - SQLite persistence (SQLAlchemy ORM)
-- JSON API: `GET/POST /api/todos`
+- JSON API
 - Health check: `GET /health`
 - Tests: pytest (unit+API) and Playwright (E2E)
 - Dockerfile for containerized run
@@ -21,12 +27,14 @@ Minimal Flask + SQLAlchemy Todo app with unit/API/E2E tests and CI. Uses an app 
   - `DATABASE` from `TODO_DB` (default `todo.sqlite3`)
   - `TEST_RESET` enables a test-only reset endpoint
 - `app/db.py` — global SQLAlchemy `engine` + `SessionLocal`; `get_db()` provides a per-request session via `flask.g` and closes on teardown
-- `app/models.py` — `Base(DeclarativeBase)` and `Todo(id, title[200], done=False)`
+- `app/models.py` — `Base(DeclarativeBase)` and `Todo` with fields:
+  - `id`, `title[200]`, `done=False`
+  - `priority` (default `"medium"`), `due_date` (nullable), `created_at` (timezone-aware UTC)
 - `app/routes.py` — blueprint with:
-  - HTML: `GET /` (list), `POST /add`, `POST /toggle/<id>`, `POST /edit/<id>`, `POST /delete/<id>`
-  - API: `GET /api/todos`, `POST /api/todos`, `PATCH /api/todos/<id>`, `DELETE /api/todos/<id>`
+  - HTML: `GET /` (list with filters), `POST /add`, `POST /edit/<id>`, `POST /toggle/<id>`, `POST /delete/<id>`
+  - API: `GET /api/todos` (supports q/status/priority/sort), `POST /api/todos`
   - Test-only: `POST /api/_reset` (requires `TEST_RESET=1`)
-- `app/templates/index.html` — minimal page with `data-testid` attrs used by Playwright
+- `app/templates/index.html` — page with add form and a separate filters form (no nesting), plus `data-testid` attrs used by Playwright
 
 ## Run locally (Windows PowerShell)
 ```powershell
@@ -70,11 +78,7 @@ If you need a clean slate across tests, set `TEST_RESET=1`:
 $env:TEST_RESET = "1"; npx playwright test
 ```
 
-Coverage in E2E tests includes:
-- add and toggle a todo
-- edit a todo title
-- delete a todo (with confirm dialog)
-- negative edit (invalid title of only spaces is rejected and original remains)
+E2E covers add/toggle, inline edit/delete, and filter/sort behavior.
 
 ## CI (GitHub Actions)
 Workflow: `.github/workflows/ci.yml`
@@ -91,10 +95,14 @@ Workflow: `.github/workflows/ci.yml`
 - `TEST_RESET` — when `1`, enables `POST /api/_reset` to clear all todos (used by E2E tests)
 
 ## API quick reference
-- `GET /api/todos` → `[{ id, title, done }]`
-- `POST /api/todos` with JSON `{ "title": "..." }` → `201 { id, title, done }`
-- `PATCH /api/todos/<id>` with JSON `{ title?, done? }` → `200 { id, title, done }`
-- `DELETE /api/todos/<id>` → `204`
+- `GET /api/todos` — list todos, supports query params:
+  - `q`: text search in title (case-insensitive)
+  - `status`: `all` (default) | `active` | `done`
+  - `priority`: `all` (default) | `low` | `medium` | `high`
+  - `sort`: `-created` (newest, default) | `created` (oldest) | `due` (soonest) | `-due` (latest)
+  - Response items: `{ id, title, done, priority, due_date|null }`
+- `POST /api/todos` with JSON `{ "title": "...", "priority?": "low|medium|high", "due_date?": "YYYY-MM-DD" }`
+  - Returns `201 { id, title, done, priority, due_date|null }`
 - `POST /api/_reset` (only when `TEST_RESET=1`) → `{ ok: true }`
 
 HTML routes
@@ -116,3 +124,8 @@ Tools in `requirements.txt`: Black, isort, Flake8, MyPy, pre-commit. Example usa
 ```powershell
 black .; isort .; flake8 .; mypy app
 ```
+
+## Notes on schema/migrations
+- SQLite columns for `priority`, `due_date`, and `created_at` are ensured at startup.
+- `created_at` is timezone-aware UTC and assigned by the ORM default on insert. Existing rows are backfilled on startup.
+- If you previously had an old `todo.sqlite3` schema and encounter issues, remove the file and restart, or set a different `TODO_DB` path while testing.
