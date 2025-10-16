@@ -7,22 +7,22 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
-    pass
+    """Base class for ORM models."""
 
 
 class Todo(Base):
     __tablename__ = "todos"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    title: Mapped[str] = mapped_column(String(200))
+    title: Mapped[str] = mapped_column(String(200))  # 1..200 chars
     done: Mapped[bool] = mapped_column(Boolean, default=False)
-    # New metadata fields
+    # Metadata fields
     priority: Mapped[str] = mapped_column(
         String(10), default="medium"
     )  # low|medium|high
-    # Avoid Optional/Union typing to keep SQLAlchemy typing simple on Python 3.14
-    due_date: Mapped[date] = mapped_column(Date, nullable=True)  # may be NULL in DB
-    # Use timezone-aware UTC to avoid deprecation warnings and be explicit
+    # Optional due date; stored as DATE (NULL allowed)
+    due_date: Mapped[date] = mapped_column(Date, nullable=True)
+    # Timezone-aware UTC timestamp (set on insert by ORM default)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )

@@ -6,6 +6,7 @@ test.beforeEach(async ({ request }) => {
   await request.post('/api/_reset').catch(() => {});
 });
 
+// --- Basic create/toggle flow -------------------------------------------------
 test('add and toggle a todo', async ({ page }) => {
   await page.goto('/');
 
@@ -31,8 +32,9 @@ test('add and toggle a todo', async ({ page }) => {
   const titleSpan = item.locator('[data-testid="todo-title"]');
   await expect(titleSpan).toHaveClass(/(^|\s)done(\s|$)/);
 });
- 
 
+
+// --- Inline edit flow ---------------------------------------------------------
 test('edit a todo title', async ({ page }) => {
   await page.goto('/');
 
@@ -61,6 +63,7 @@ test('edit a todo title', async ({ page }) => {
 });
 
 
+// --- Delete with confirm dialog ----------------------------------------------
 test('delete a todo', async ({ page }) => {
   await page.goto('/');
 
@@ -86,6 +89,7 @@ test('delete a todo', async ({ page }) => {
 });
 
 
+// --- Server-side validation guardrail ----------------------------------------
 test('edit with invalid title (spaces) is rejected', async ({ page }) => {
   await page.goto('/');
 
@@ -108,7 +112,8 @@ test('edit with invalid title (spaces) is rejected', async ({ page }) => {
   });
   await expect(unchanged).toHaveCount(1);
 });
- 
+
+// --- Filters and sorting UX ---------------------------------------------------
 test('filters and sorting work independently', async ({ page, request }) => {
   await page.goto('/');
 

@@ -1,3 +1,10 @@
+"""Integration tests for the JSON API.
+
+These tests spin up a Werkzeug server in a background thread and exercise the
+HTTP API using `httpx`. Compared with unit tests that use `test_client`, this
+verifies routing, serialization, and filter/sort behavior end-to-end over HTTP.
+"""
+
 import threading
 
 import httpx
@@ -7,18 +14,30 @@ from app import create_app
 
 
 class ServerThread(threading.Thread):
+    """Run a tiny WSGI server on localhost for the duration of the test."""
+
     def __init__(self, app):
         super().__init__(daemon=True)
         self.srv = make_server("127.0.0.1", 5001, app)
 
     def run(self):
+        # Block and serve requests until `shutdown` is called
         self.srv.serve_forever()
 
     def stop(self):
+        # Gracefully stop the server
         self.srv.shutdown()
 
 
 def test_api_crud(tmp_path):
+    """CRUD over HTTP plus filtering, searching, and sorting semantics.
+
+    Flow:
+    - Start a dedicated server bound to a temp DB.
+    - Verify empty list.
+    - Create three todos with varying priority and due_date.
+    - Validate listing, filtering by priority, text search, and sort-by-due (NULLs last).
+    """
     app = create_app({"DATABASE": str(tmp_path / "test.sqlite3")})
     server = ServerThread(app)
     server.start()

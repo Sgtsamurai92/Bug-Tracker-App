@@ -6,6 +6,13 @@ from .db import init_db
 
 
 def create_app(test_config: dict | None = None) -> Flask:
+    """Application factory for the Flask app.
+
+    - Reads basic config from environment with sensible defaults
+    - Initializes the SQLAlchemy engine/session lifecycle
+    - Registers the blueprint with routes and APIs
+    - Exposes a simple /health endpoint for monitoring/tests
+    """
     app = Flask(__name__)
     app.config.update(
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev"),

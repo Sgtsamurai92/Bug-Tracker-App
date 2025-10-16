@@ -1,6 +1,16 @@
 from __future__ import annotations
 
+"""Flask routes and JSON API for the Todo app.
+
+- Ensures SQLite schema has the expected columns on startup
+- Server-rendered UI with add/edit/toggle/delete
+- JSON API for listing and CRUD with simple validation
+- Filtering: q (search), status (all/active/done), priority
+- Sorting: created (asc/desc), due (asc/desc, NULLs last)
+"""
+
 from datetime import datetime
+
 from flask import (
     Blueprint,
     current_app,
@@ -20,7 +30,7 @@ bp = Blueprint("routes", __name__)
 
 @bp.before_app_request
 def ensure_tables() -> None:
-    # Create tables once (safe to call repeatedly)
+    # Create tables once (safe to call repeatedly) and ensure columns exist
     if engine is not None:
         Base.metadata.create_all(bind=engine)
         _ensure_sqlite_columns()
@@ -63,7 +73,7 @@ def index():
     db = get_db()
     query = select(Todo)
 
-    # Filters
+    # Filters from query string
     q = (request.args.get("q") or "").strip()
     status = (request.args.get("status") or "all").lower()
     prio = (request.args.get("p") or "all").lower()
@@ -94,6 +104,7 @@ def index():
 
 @bp.post("/add")
 def add():
+    """Create a todo from HTML form input (title, priority, optional due date)."""
     title = request.form.get("title", "").strip()
     priority = (request.form.get("priority") or "medium").lower()
     due_str = (request.form.get("due_date") or "").strip()
@@ -112,6 +123,7 @@ def add():
 
 @bp.post("/toggle/<int:todo_id>")
 def toggle(todo_id: int):
+    """Toggle a todo's done status (HTML form)."""
     db = get_db()
     todo = db.get(Todo, todo_id)
     if todo:
@@ -170,6 +182,11 @@ def delete_todo(todo_id: int):
 # --- JSON API ---
 @bp.get("/api/todos")
 def api_list():
+    """List todos with optional filters and sorting.
+
+    Query params: q, status, priority, sort. See README for values.
+    Returns JSON with id, title, done, priority, due_date.
+    """
     db = get_db()
     query = select(Todo)
     q = (request.args.get("q") or "").strip()
@@ -212,6 +229,11 @@ def api_list():
 
 @bp.post("/api/todos")
 def api_create():
+    """Create a todo via JSON input with validation.
+
+    Accepts: title (1..200), optional priority and due_date (YYYY-MM-DD).
+    Returns created todo JSON.
+    """
     data = request.get_json(force=True) or {}
     title = (data.get("title") or "").strip()
     priority = (data.get("priority") or "medium").lower()
