@@ -7,7 +7,7 @@ Minimal Flask + SQLAlchemy Todo app with unit/API/E2E tests and CI. Uses an app 
 
 
 ## Features
-- Add/toggle todos; server-rendered UI (Jinja2)
+- Add/toggle/edit/delete todos; server-rendered UI (Jinja2)
 - SQLite persistence (SQLAlchemy ORM)
 - JSON API: `GET/POST /api/todos`
 - Health check: `GET /health`
@@ -23,8 +23,8 @@ Minimal Flask + SQLAlchemy Todo app with unit/API/E2E tests and CI. Uses an app 
 - `app/db.py` — global SQLAlchemy `engine` + `SessionLocal`; `get_db()` provides a per-request session via `flask.g` and closes on teardown
 - `app/models.py` — `Base(DeclarativeBase)` and `Todo(id, title[200], done=False)`
 - `app/routes.py` — blueprint with:
-  - HTML: `GET /` (list), `POST /add`, `POST /toggle/<id>`
-  - API: `GET /api/todos`, `POST /api/todos`
+  - HTML: `GET /` (list), `POST /add`, `POST /toggle/<id>`, `POST /edit/<id>`, `POST /delete/<id>`
+  - API: `GET /api/todos`, `POST /api/todos`, `PATCH /api/todos/<id>`, `DELETE /api/todos/<id>`
   - Test-only: `POST /api/_reset` (requires `TEST_RESET=1`)
 - `app/templates/index.html` — minimal page with `data-testid` attrs used by Playwright
 
@@ -70,6 +70,12 @@ If you need a clean slate across tests, set `TEST_RESET=1`:
 $env:TEST_RESET = "1"; npx playwright test
 ```
 
+Coverage in E2E tests includes:
+- add and toggle a todo
+- edit a todo title
+- delete a todo (with confirm dialog)
+- negative edit (invalid title of only spaces is rejected and original remains)
+
 ## CI (GitHub Actions)
 Workflow: `.github/workflows/ci.yml`
 - Sets up Python 3.11 and installs `requirements.txt`
@@ -87,7 +93,13 @@ Workflow: `.github/workflows/ci.yml`
 ## API quick reference
 - `GET /api/todos` → `[{ id, title, done }]`
 - `POST /api/todos` with JSON `{ "title": "..." }` → `201 { id, title, done }`
+- `PATCH /api/todos/<id>` with JSON `{ title?, done? }` → `200 { id, title, done }`
+- `DELETE /api/todos/<id>` → `204`
 - `POST /api/_reset` (only when `TEST_RESET=1`) → `{ ok: true }`
+
+HTML routes
+- `GET /` — list and inline edit/delete controls
+- `POST /add`, `POST /toggle/<id>`, `POST /edit/<id>`, `POST /delete/<id>`
 
 ## Project structure (key files)
 - `app/__init__.py` — app factory and `/health`
