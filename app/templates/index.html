@@ -26,11 +26,20 @@
   {% for t in todos %}
   <li data-testid="todo-item">
     <span data-testid="todo-title" class="{% if t.done %}done{% endif %}">{{ t.title }}</span>
-    <form action="/toggle/{{ t.id }}" method="post">
-      <button data-testid="todo-toggle" type="submit">
-        {% if t.done %}Undo{% else %}Done{% endif %}
-      </button>
-    </form>
+    <div style="display:flex; gap:.25rem;">
+      <form action="/edit/{{ t.id }}" method="post">
+        <input name="title" value="{{ t.title }}" minlength="1" maxlength="200" />
+        <button data-testid="todo-edit" type="submit">Save</button>
+      </form>
+      <form action="/toggle/{{ t.id }}" method="post">
+        <button data-testid="todo-toggle" type="submit">
+          {% if t.done %}Undo{% else %}Done{% endif %}
+        </button>
+      </form>
+      <form action="/delete/{{ t.id }}" method="post" onsubmit="return confirm('Delete this todo?');">
+        <button data-testid="todo-delete" type="submit">Delete</button>
+      </form>
+    </div>
   </li>
   {% else %}
   <li>No tasks yet.</li>

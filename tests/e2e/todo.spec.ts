@@ -31,3 +31,80 @@ test('add and toggle a todo', async ({ page }) => {
   const titleSpan = item.locator('[data-testid="todo-title"]');
   await expect(titleSpan).toHaveClass(/(^|\s)done(\s|$)/);
 });
+
+
+test('edit a todo title', async ({ page }) => {
+  await page.goto('/');
+
+  const original = `Edit me ${Date.now()}`;
+  const updated = `${original} - updated`;
+
+  // Add a todo
+  await page.locator('[data-testid="todo-input"]').fill(original);
+  await page.locator('[data-testid="todo-add"]').click();
+
+  // Locate the row by original title
+  const item = page.locator('[data-testid="todo-item"]', {
+    has: page.locator('[data-testid="todo-title"]', { hasText: original }),
+  });
+  await expect(item).toHaveCount(1);
+
+  // Fill the inline edit input and save
+  await item.locator('input[name="title"]').fill(updated);
+  await item.locator('[data-testid="todo-edit"]').click();
+
+  // Verify the updated title is rendered
+  const updatedItem = page.locator('[data-testid="todo-item"]', {
+    has: page.locator('[data-testid="todo-title"]', { hasText: updated }),
+  });
+  await expect(updatedItem).toHaveCount(1);
+});
+
+
+test('delete a todo', async ({ page }) => {
+  await page.goto('/');
+
+  const title = `Delete me ${Date.now()}`;
+  await page.locator('[data-testid="todo-input"]').fill(title);
+  await page.locator('[data-testid="todo-add"]').click();
+
+  const item = page.locator('[data-testid="todo-item"]', {
+    has: page.locator('[data-testid="todo-title"]', { hasText: title }),
+  });
+  await expect(item).toHaveCount(1);
+
+  // Accept confirm dialog and click delete
+  const once = page.once('dialog', d => d.accept());
+  await item.locator('[data-testid="todo-delete"]').click();
+  await once; // ensure dialog was handled
+
+  // Verify it is gone
+  const deleted = page.locator('[data-testid="todo-item"]', {
+    has: page.locator('[data-testid="todo-title"]', { hasText: title }),
+  });
+  await expect(deleted).toHaveCount(0);
+});
+
+
+test('edit with invalid title (spaces) is rejected', async ({ page }) => {
+  await page.goto('/');
+
+  const original = `Keep me ${Date.now()}`;
+  await page.locator('[data-testid="todo-input"]').fill(original);
+  await page.locator('[data-testid="todo-add"]').click();
+
+  const item = page.locator('[data-testid="todo-item"]', {
+    has: page.locator('[data-testid="todo-title"]', { hasText: original }),
+  });
+  await expect(item).toHaveCount(1);
+
+  // Fill spaces; browser will allow since minlength=1, but server trims and rejects
+  await item.locator('input[name="title"]').fill('   ');
+  await item.locator('[data-testid="todo-edit"]').click();
+
+  // After submit, title should remain unchanged
+  const unchanged = page.locator('[data-testid="todo-item"]', {
+    has: page.locator('[data-testid="todo-title"]', { hasText: original }),
+  });
+  await expect(unchanged).toHaveCount(1);
+});
