@@ -6,6 +6,10 @@ Minimal Flask + SQLAlchemy Todo app with unit/API/E2E tests and CI. Uses an app 
 [![CI](https://github.com/sgtsamurai92/Bug-Tracker-App/actions/workflows/ci.yml/badge.svg)](https://github.com/sgtsamurai92/Bug-Tracker-App/actions)
 
 
+
+![App Looks like](test-results\Screenshots\applooks.png)
+
+
 ## Features
 - Add, edit, toggle, and delete todos; server-rendered UI (Jinja2)
 - Metadata on todos: priority (low/medium/high), optional due date, created_at (UTC)
