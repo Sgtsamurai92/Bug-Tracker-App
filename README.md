@@ -7,8 +7,7 @@ Minimal Flask + SQLAlchemy Todo app with unit/API/E2E tests and CI. Uses an app 
 
 
 
-![App Looks like](test-results\Screenshots\applooks.png)
-
+![App Looks like](test-results/Screenshots/applooks.png)
 
 ## Features
 - Add, edit, toggle, and delete todos; server-rendered UI (Jinja2)
